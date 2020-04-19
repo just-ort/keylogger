@@ -2,7 +2,7 @@
 using VkNet;
 using VkNet.Enums.Filters;
 using VkNet.Model;
-using VkNet.Model.RequestParams;w
+using VkNet.Model.RequestParams;
 
 namespace lab2
 {
