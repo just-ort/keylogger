@@ -18,6 +18,7 @@
         </e>
         <e p="Program.cs" t="Include" />
         <e p="Translator.cs" t="Include" />
+        <e p="VKSender.cs" t="Include" />
       </e>
       <e p="lab2.sln" t="IncludeFlat" />
       <e p="packages" t="ExcludeRecursive" />

